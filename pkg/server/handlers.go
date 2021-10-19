@@ -24,26 +24,16 @@ func (server *Server) targetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var checkMap = make(map[string]interface{})
+	json.Unmarshal(b, &checkMap)
 	if checkMap["positions"] != nil {
-		for _, v := range checkMap {
-
-			bb, err := json.Marshal(v)
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-			var pose geometry_msgs.Pose
-			err = json.Unmarshal(bb, &pose)
-			if err != nil {
-				log.Println(err)
-				w.Write([]byte(err.Error()))
-				return
-			}
-			err = server.service.PublishPoseStamped(pose)
+		ps, ok := checkMap["positions"].([]geometry_msgs.Pose)
+		if ok {
+			err = server.service.PublishPoseStamped(ps[0])
 			if err != nil {
 				log.Println(err)
 				w.Write([]byte(err.Error()))
 			}
+			server.AddQuene(ps[1:])
 		}
 	} else {
 		var pose geometry_msgs.Pose
@@ -53,6 +43,7 @@ func (server *Server) targetHandler(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(err.Error()))
 			return
 		}
+		server.CleanQueue()
 		log.Println(string(b))
 		err = server.service.PublishPoseStamped(pose)
 		if err != nil {

@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/aler9/goroslib/pkg/msgs/geometry_msgs"
 	"github.com/rs/cors"
 	"github.com/suutaku/command-server/pkg/utils"
 )
@@ -67,4 +68,12 @@ SUB:
 	// }
 
 	http.ListenAndServe(":"+server.port, server.handler)
+}
+
+func (server *Server) AddQuene(qu []geometry_msgs.Pose) {
+	server.service.AddQuene(qu)
+}
+
+func (server *Server) CleanQueue() {
+	server.service.CleanQueue()
 }

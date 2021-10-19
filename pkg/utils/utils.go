@@ -20,6 +20,7 @@ type Service struct {
 	node            *goroslib.Node
 	pub             *goroslib.Publisher
 	pubc            *goroslib.Publisher
+	pq              *PositionQueue
 }
 
 func NewService(name string, host string) *Service {
@@ -54,14 +55,22 @@ func NewService(name string, host string) *Service {
 	if err != nil {
 		panic(err)
 	}
-
-	return &Service{
+	pq := NewPositionQueue(n)
+	sv := Service{
 		name: name,
 		host: host,
 		node: n,
 		pub:  p,
 		pubc: p2,
+		pq:   pq,
 	}
+	go func() {
+		for {
+			pose := <-pq.Item
+			sv.PublishPoseStamped(pose)
+		}
+	}()
+	return &sv
 }
 
 func (pub *Service) PublishPoseStamped(input geometry_msgs.Pose) error {
@@ -131,4 +140,12 @@ func (svc *Service) GetCurrentLocation() nav_msgs.Odometry {
 
 func (svc *Service) Close() {
 	svc.sub.Close()
+}
+
+func (svc *Service) AddQuene(qu []geometry_msgs.Pose) {
+	svc.pq.AddQuene(qu)
+}
+
+func (svc *Service) CleanQueue() {
+	svc.pq.Clean()
 }
