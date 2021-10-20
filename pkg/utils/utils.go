@@ -66,6 +66,7 @@ func NewService(name string, host string) *Service {
 	}
 	go func() {
 		for {
+			log.Println("wait pose sequence")
 			pose := <-pq.Item
 			sv.PublishPoseStamped(pose)
 		}

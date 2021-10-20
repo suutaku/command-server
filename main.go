@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	log.SetFlags(log.Lshortfile)
+	log.SetFlags(log.Llongfile)
 	server := server.NewServer("5000")
 	server.InitServer()
 	server.Serve()

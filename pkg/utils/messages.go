@@ -1,11 +1,9 @@
 package utils
 
 import (
-	"fmt"
-
-	"github.com/aler9/goroslib"
+	"github.com/aler9/goroslib/pkg/msg"
 	"github.com/aler9/goroslib/pkg/msgs/actionlib_msgs"
-	"github.com/aler9/goroslib/pkg/msgs/geometry_msgs"
+	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
 
 type MapMeta struct {
@@ -36,60 +34,12 @@ type Pose struct {
 }
 
 type MoveBaseResult struct {
-	Status actionlib_msgs.GoalStatus
+	msg.Package `ros:"move_base_msgs"`
 }
 
-type PositionQueue struct {
-	Positions []geometry_msgs.Pose
-	Sub       *goroslib.Subscriber
-	Item      chan geometry_msgs.Pose
-}
-
-func NewPositionQueue(node *goroslib.Node) *PositionQueue {
-	pos := PositionQueue{}
-	postions := make([]geometry_msgs.Pose, 0)
-	sub, err := goroslib.NewSubscriber(goroslib.SubscriberConf{
-		Node:     node,
-		Topic:    "/move_base/result",
-		Callback: pos.onMoveBaseResult,
-	})
-	if err != nil {
-		fmt.Println(err)
-	}
-	pos.Item = make(chan geometry_msgs.Pose)
-	pos.Positions = postions
-	pos.Sub = sub
-	return &pos
-}
-
-func (pq *PositionQueue) getFirst() (geometry_msgs.Pose, error) {
-	if len(pq.Positions) == 0 {
-		return geometry_msgs.Pose{}, fmt.Errorf("Empty queue")
-	}
-	item := pq.Positions[0]
-	pq.Positions = pq.Positions[1:]
-	return item, nil
-}
-
-func (pq *PositionQueue) Clean() {
-	pq.Positions = make([]geometry_msgs.Pose, 0)
-}
-
-func (pq *PositionQueue) onMoveBaseResult(msg *MoveBaseResult) {
-	switch msg.Status.Status {
-	case actionlib_msgs.GoalStatus_SUCCEEDED:
-		item, err := pq.getFirst()
-		if err != nil {
-			fmt.Println(err)
-		}
-		pq.Item <- item
-	case actionlib_msgs.GoalStatus_RECALLED:
-		pq.Clean()
-	default:
-	}
-
-}
-
-func (pq *PositionQueue) AddQuene(qu []geometry_msgs.Pose) {
-	pq.Positions = qu
+type MoveBaseActionResult struct {
+	msg.Package `ros:"move_base_msgs"`
+	Header      std_msgs.Header
+	Status      actionlib_msgs.GoalStatus
+	Result      MoveBaseResult
 }

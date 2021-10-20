@@ -26,6 +26,7 @@ func (server *Server) targetHandler(w http.ResponseWriter, r *http.Request) {
 	var checkMap = make(map[string]interface{})
 	json.Unmarshal(b, &checkMap)
 	if checkMap["positions"] != nil {
+		fmt.Println("positions come")
 		ps, ok := checkMap["positions"].([]geometry_msgs.Pose)
 		if ok {
 			err = server.service.PublishPoseStamped(ps[0])
@@ -43,6 +44,7 @@ func (server *Server) targetHandler(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(err.Error()))
 			return
 		}
+		server.service.StopTest()
 		server.CleanQueue()
 		log.Println(string(b))
 		err = server.service.PublishPoseStamped(pose)
