@@ -144,6 +144,7 @@ func (svc *Service) Close() {
 }
 
 func (svc *Service) AddQuene(qu []geometry_msgs.Pose) {
+	log.Printf("add quene")
 	svc.pq.AddQuene(qu)
 }
 

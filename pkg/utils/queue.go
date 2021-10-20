@@ -45,7 +45,8 @@ func (pq *PositionQueue) Clean() {
 }
 
 func (pq *PositionQueue) onMoveBaseResult(msg *MoveBaseActionResult) {
-	fmt.Println("On goal success")
+	fmt.Println("onMoveBaseResult")
+	fmt.Printf("%+v\n", msg)
 	switch msg.Status.Status {
 	case actionlib_msgs.GoalStatus_SUCCEEDED:
 		item, err := pq.getFirst()
@@ -54,9 +55,12 @@ func (pq *PositionQueue) onMoveBaseResult(msg *MoveBaseActionResult) {
 			return
 		}
 		pq.Item <- item
-	case actionlib_msgs.GoalStatus_RECALLED:
+		fmt.Println("Send new position")
+	case actionlib_msgs.GoalStatus_PREEMPTED:
 		pq.Clean()
+		fmt.Println("Clean all positions")
 	default:
+		fmt.Println("Unkown state ", msg.Status.Status)
 	}
 
 }

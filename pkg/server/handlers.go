@@ -23,19 +23,19 @@ func (server *Server) targetHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
-	var checkMap = make(map[string]interface{})
+	var checkMap = make(map[string][]geometry_msgs.Pose)
+	checkMap["positions"] = make([]geometry_msgs.Pose, 0)
 	json.Unmarshal(b, &checkMap)
-	if checkMap["positions"] != nil {
+	fmt.Printf("%+v\n", checkMap)
+	if len(checkMap["positions"]) > 0 {
 		fmt.Println("positions come")
-		ps, ok := checkMap["positions"].([]geometry_msgs.Pose)
-		if ok {
-			err = server.service.PublishPoseStamped(ps[0])
-			if err != nil {
-				log.Println(err)
-				w.Write([]byte(err.Error()))
-			}
-			server.AddQuene(ps[1:])
+		ps := checkMap["positions"]
+		err = server.service.PublishPoseStamped(ps[0])
+		if err != nil {
+			log.Println(err)
+			w.Write([]byte(err.Error()))
 		}
+		server.AddQuene(ps[1:])
 	} else {
 		var pose geometry_msgs.Pose
 		err = json.Unmarshal(b, &pose)
@@ -46,7 +46,6 @@ func (server *Server) targetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		server.service.StopTest()
 		server.CleanQueue()
-		log.Println(string(b))
 		err = server.service.PublishPoseStamped(pose)
 		if err != nil {
 			log.Println(err)
@@ -66,7 +65,6 @@ func (server *Server) runshHandler(w http.ResponseWriter, r *http.Request) {
 
 func (server *Server) locationHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Expose-Headers", "Map-Resolution,Origin-X,Origin-Y")
-	log.Println("location request")
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
